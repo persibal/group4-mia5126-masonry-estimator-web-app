@@ -1,8 +1,8 @@
 from pathlib import Path
+import html
 import re
 from typing import Optional
 
-import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -83,6 +83,54 @@ st.markdown(
     .muted {
         color: #52616b;
         font-size: 0.95rem;
+    }
+    .simple-chart {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 0.85rem;
+        margin: 0.5rem 0 1.35rem 0;
+    }
+    .simple-chart-row {
+        display: grid;
+        grid-template-columns: minmax(230px, 42%) 1fr 74px;
+        gap: 0.75rem;
+        align-items: center;
+        min-height: 34px;
+        margin: 0.35rem 0;
+    }
+    .simple-chart-label {
+        color: #475569;
+        font-size: 0.88rem;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+    .simple-chart-track {
+        height: 20px;
+        border-radius: 5px;
+        background: #eef2ff;
+        overflow: hidden;
+    }
+    .simple-chart-bar {
+        height: 100%;
+        border-radius: 5px;
+    }
+    .simple-chart-value {
+        color: #172033;
+        font-size: 0.88rem;
+        font-weight: 650;
+        text-align: right;
+        white-space: nowrap;
+    }
+    @media (max-width: 640px) {
+        .simple-chart-row {
+            grid-template-columns: 1fr;
+            gap: 0.3rem;
+            margin-bottom: 0.85rem;
+        }
+        .simple-chart-value {
+            text-align: left;
+        }
     }
     </style>
     """,
@@ -271,100 +319,50 @@ def make_comparison_data(
     return chart_data
 
 
-def percent_chart(chart_data: pd.DataFrame) -> alt.Chart:
-    chart_order = chart_data.sort_values("sort_order")["chart_label"].tolist()
-    bars = (
-        alt.Chart(chart_data)
-        .mark_bar()
-        .encode(
-            x=alt.X(
-                "median_masonry_percent:Q",
-                title="Median masonry percentage",
-                axis=alt.Axis(format=".0%"),
-            ),
-            y=alt.Y(
-                "chart_label:N",
-                sort=chart_order,
-                title=None,
-                axis=alt.Axis(labelLimit=420, labelFontSize=11),
-            ),
-            color=alt.Color(
-                "chart_group:N",
-                scale=alt.Scale(
-                    domain=["Selected category", "Overall median", "Other categories"],
-                    range=["#2563eb", "#64748b", "#c7d2fe"],
-                ),
-                legend=None,
-            ),
-            tooltip=[
-                alt.Tooltip("full_category_name:N", title="Category"),
-                alt.Tooltip("median_masonry_percent:Q", title="Median masonry %", format=".2%"),
-                alt.Tooltip("available_project_records:Q", title="Total usable records", format=","),
-                alt.Tooltip("reported_project_records:Q", title="Reported records", format=","),
-                alt.Tooltip("predicted_project_records:Q", title="Predicted records", format=","),
-            ],
-        )
-    )
-    labels = (
-        alt.Chart(chart_data)
-        .mark_text(align="left", baseline="middle", dx=4, color="#172033")
-        .encode(
-            x="median_masonry_percent:Q",
-            y=alt.Y(
-                "chart_label:N",
-                sort=chart_order,
-                axis=alt.Axis(labelLimit=420, labelFontSize=11),
-            ),
-            text="masonry_percent_label:N",
-        )
-    )
-    return (bars + labels).properties(height=330)
+def chart_color(chart_group: str) -> str:
+    colors = {
+        "Selected category": "#2563eb",
+        "Overall median": "#64748b",
+        "Other categories": "#c7d2fe",
+    }
+    return colors.get(chart_group, "#c7d2fe")
 
 
-def record_count_chart(chart_data: pd.DataFrame) -> alt.Chart:
-    data = chart_data[chart_data["reported_project_records"].notna()].copy()
-    chart_order = chart_data.sort_values("sort_order")["chart_label"].tolist()
-    bars = (
-        alt.Chart(data)
-        .mark_bar()
-        .encode(
-            x=alt.X("reported_project_records:Q", title="Reported masonry records"),
-            y=alt.Y(
-                "chart_label:N",
-                sort=chart_order,
-                title=None,
-                axis=alt.Axis(labelLimit=420, labelFontSize=11),
-            ),
-            color=alt.Color(
-                "chart_group:N",
-                scale=alt.Scale(
-                    domain=["Selected category", "Overall median", "Other categories"],
-                    range=["#2563eb", "#64748b", "#c7d2fe"],
-                ),
-                legend=None,
-            ),
-            tooltip=[
-                alt.Tooltip("full_category_name:N", title="Category"),
-                alt.Tooltip("reported_project_records:Q", title="Reported records", format=","),
-                alt.Tooltip("predicted_project_records:Q", title="Predicted records", format=","),
-                alt.Tooltip("available_project_records:Q", title="Total usable records", format=","),
-            ],
+def render_bar_chart(
+    chart_data: pd.DataFrame,
+    value_column: str,
+    value_label_column: str,
+) -> str:
+    data = chart_data[chart_data[value_column].notna()].sort_values("sort_order")
+    max_value = data[value_column].max()
+    if pd.isna(max_value) or max_value <= 0:
+        max_value = 1
+
+    rows = []
+    for _, row in data.iterrows():
+        value = float(row[value_column])
+        width = max(1.2, min((value / max_value) * 100, 100))
+        label = html.escape(str(row["chart_label"]))
+        value_label = html.escape(str(row[value_label_column]))
+        color = chart_color(str(row["chart_group"]))
+        record_value = row["available_project_records"]
+        record_text = "" if pd.isna(record_value) else f"{int(record_value):,}"
+        title = html.escape(
+            f"{row['full_category_name']} | Total usable records: "
+            f"{record_text}"
         )
-    )
-    labels = (
-        alt.Chart(data)
-        .mark_text(align="left", baseline="middle", dx=4, color="#172033")
-        .encode(
-            x="reported_project_records:Q",
-            y=alt.Y(
-                "chart_label:N",
-                sort=chart_order,
-                axis=alt.Axis(labelLimit=420, labelFontSize=11),
-            ),
-            text="record_count_label:N",
+        rows.append(
+            f"""
+            <div class="simple-chart-row" title="{title}">
+                <div class="simple-chart-label">{label}</div>
+                <div class="simple-chart-track">
+                    <div class="simple-chart-bar" style="width: {width:.2f}%; background: {color};"></div>
+                </div>
+                <div class="simple-chart-value">{value_label}</div>
+            </div>
+            """
         )
-    )
-    return (bars + labels).properties(height=300)
+    return '<div class="simple-chart">' + "\n".join(rows) + "</div>"
 
 
 st.title("Masonry Value Estimator")
@@ -541,10 +539,16 @@ chart_data = make_comparison_data(
 )
 
 st.write("**How the selected category compares with other categories**")
-st.altair_chart(percent_chart(chart_data), use_container_width=True)
+st.markdown(
+    render_bar_chart(chart_data, "median_masonry_percent", "masonry_percent_label"),
+    unsafe_allow_html=True,
+)
 
 st.write("**Number of reported masonry records supporting each category**")
-st.altair_chart(record_count_chart(chart_data), use_container_width=True)
+st.markdown(
+    render_bar_chart(chart_data, "reported_project_records", "record_count_label"),
+    unsafe_allow_html=True,
+)
 
 selected_rank = (
     summary["median_masonry_percent"].rank(method="min", ascending=False)
