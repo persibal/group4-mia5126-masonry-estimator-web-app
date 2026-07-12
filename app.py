@@ -474,10 +474,10 @@ with right:
 
 button_col, reset_col = st.columns([2, 1])
 with button_col:
-    if st.button("Estimate Masonry Value", type="primary", width="stretch"):
+    if st.button("Estimate Masonry Value", type="primary", use_container_width=True):
         st.session_state.show_result = True
 with reset_col:
-    st.button("Reset", width="stretch", on_click=reset_inputs)
+    st.button("Reset", use_container_width=True, on_click=reset_inputs)
 
 selected = st.session_state.subcategory
 project_value = float(st.session_state.project_value)
@@ -583,7 +583,7 @@ with st.expander("View the category summary table"):
     table["median_masonry_percent"] = table["median_masonry_percent"] * 100
     st.dataframe(
         table,
-        width="stretch",
+        use_container_width=True,
         hide_index=True,
         column_config={
             "specific_subcategory": st.column_config.TextColumn("Subcategory"),
