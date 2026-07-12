@@ -352,17 +352,15 @@ def render_bar_chart(
             f"{record_text}"
         )
         rows.append(
-            f"""
-            <div class="simple-chart-row" title="{title}">
-                <div class="simple-chart-label">{label}</div>
-                <div class="simple-chart-track">
-                    <div class="simple-chart-bar" style="width: {width:.2f}%; background: {color};"></div>
-                </div>
-                <div class="simple-chart-value">{value_label}</div>
-            </div>
-            """
+            f'<div class="simple-chart-row" title="{title}">'
+            f'<div class="simple-chart-label">{label}</div>'
+            f'<div class="simple-chart-track">'
+            f'<div class="simple-chart-bar" style="width: {width:.2f}%; background: {color};"></div>'
+            f'</div>'
+            f'<div class="simple-chart-value">{value_label}</div>'
+            f'</div>'
         )
-    return '<div class="simple-chart">' + "\n".join(rows) + "</div>"
+    return '<div class="simple-chart">' + "".join(rows) + "</div>"
 
 
 st.title("Masonry Value Estimator")
