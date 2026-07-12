@@ -91,7 +91,7 @@ st.markdown(
     }
     .simple-chart-row {
         display: grid;
-        grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr) 78px;
+        grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr);
         gap: 0.55rem;
         align-items: center;
         min-height: 25px;
@@ -105,6 +105,7 @@ st.markdown(
         text-align: right;
     }
     .simple-chart-track {
+        position: relative;
         height: 22px;
         border-radius: 0;
         background-image: repeating-linear-gradient(
@@ -122,15 +123,19 @@ st.markdown(
         margin-top: 2px;
     }
     .simple-chart-value {
+        position: absolute;
+        top: 50%;
+        left: min(calc(var(--bar-width) + 5px), calc(100% - 72px));
+        transform: translateY(-50%);
         color: #172033;
         font-size: 0.79rem;
         font-weight: 650;
-        text-align: right;
+        text-align: left;
         white-space: nowrap;
     }
     .simple-chart-axis {
         display: grid;
-        grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr) 78px;
+        grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr);
         gap: 0.55rem;
         margin-top: 0.5rem;
         color: #718096;
@@ -158,7 +163,8 @@ st.markdown(
             text-align: left;
         }
         .simple-chart-value {
-            text-align: left;
+            left: auto;
+            right: 0.25rem;
         }
         .simple-chart-axis {
             display: none;
@@ -397,17 +403,16 @@ def render_bar_chart(
         rows.append(
             f'<div class="simple-chart-row" title="{title}">'
             f'<div class="simple-chart-label">{label}</div>'
-            f'<div class="simple-chart-track">'
+            f'<div class="simple-chart-track" style="--bar-width: {width:.2f}%;">'
             f'<div class="simple-chart-bar" style="width: {width:.2f}%; background: {color};"></div>'
-            f'</div>'
             f'<div class="simple-chart-value">{value_label}</div>'
+            f'</div>'
             f'</div>'
         )
     axis = (
         '<div class="simple-chart-axis">'
         '<div></div>'
         f'<div class="simple-chart-ticks">{"".join(f"<span>{tick}</span>" for tick in ticks)}</div>'
-        '<div></div>'
         f'<div class="simple-chart-axis-title">{html.escape(axis_title)}</div>'
         '</div>'
     )
