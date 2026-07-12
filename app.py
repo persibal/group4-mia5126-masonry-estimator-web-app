@@ -540,21 +540,6 @@ if summary.empty:
 if "show_result" not in st.session_state:
     st.session_state.show_result = False
 
-usable_records = data[
-    data["project_value"].notna()
-    & data["masonry_value_filled"].notna()
-    & (data["project_value"] > 0)
-    & (data["masonry_value_filled"] > 0)
-]
-reported_records = usable_records["masonry_value_source"].eq("Reported").sum()
-predicted_records = usable_records["masonry_value_source"].eq("Predicted").sum()
-
-metric1, metric2, metric3, metric4 = st.columns(4)
-metric1.metric("Reported values", f"{reported_records:,}")
-metric2.metric("Predicted values", f"{predicted_records:,}")
-metric3.metric("Total usable records", f"{len(usable_records):,}")
-metric4.metric("Categories available", f"{len(summary):,}")
-
 st.divider()
 
 categories = summary["specific_subcategory"].tolist()
