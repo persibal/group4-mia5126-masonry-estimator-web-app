@@ -85,42 +85,68 @@ st.markdown(
         font-size: 0.95rem;
     }
     .simple-chart {
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        background: #ffffff;
-        padding: 0.85rem;
-        margin: 0.5rem 0 1.35rem 0;
+        background: transparent;
+        padding: 0.45rem 0 1.6rem 0;
+        margin: 0.5rem 0 1.65rem 0;
     }
     .simple-chart-row {
         display: grid;
-        grid-template-columns: minmax(230px, 42%) 1fr 74px;
-        gap: 0.75rem;
+        grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr) 78px;
+        gap: 0.55rem;
         align-items: center;
-        min-height: 34px;
-        margin: 0.35rem 0;
+        min-height: 25px;
+        margin: 0.08rem 0;
     }
     .simple-chart-label {
-        color: #475569;
-        font-size: 0.88rem;
+        color: #718096;
+        font-size: 0.82rem;
         line-height: 1.25;
         overflow-wrap: anywhere;
+        text-align: right;
     }
     .simple-chart-track {
-        height: 20px;
-        border-radius: 5px;
-        background: #eef2ff;
-        overflow: hidden;
+        height: 22px;
+        border-radius: 0;
+        background-image: repeating-linear-gradient(
+            to right,
+            #dbe3f1 0,
+            #dbe3f1 1px,
+            transparent 1px,
+            transparent 8.333%
+        );
+        overflow: visible;
     }
     .simple-chart-bar {
-        height: 100%;
-        border-radius: 5px;
+        height: 18px;
+        border-radius: 0;
+        margin-top: 2px;
     }
     .simple-chart-value {
         color: #172033;
-        font-size: 0.88rem;
+        font-size: 0.79rem;
         font-weight: 650;
         text-align: right;
         white-space: nowrap;
+    }
+    .simple-chart-axis {
+        display: grid;
+        grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr) 78px;
+        gap: 0.55rem;
+        margin-top: 0.5rem;
+        color: #718096;
+        font-size: 0.78rem;
+    }
+    .simple-chart-ticks {
+        display: flex;
+        justify-content: space-between;
+        padding-left: 0;
+    }
+    .simple-chart-axis-title {
+        grid-column: 2 / 3;
+        text-align: center;
+        margin-top: 0.7rem;
+        color: #718096;
+        font-size: 0.86rem;
     }
     @media (max-width: 640px) {
         .simple-chart-row {
@@ -128,8 +154,17 @@ st.markdown(
             gap: 0.3rem;
             margin-bottom: 0.85rem;
         }
+        .simple-chart-label {
+            text-align: left;
+        }
         .simple-chart-value {
             text-align: left;
+        }
+        .simple-chart-axis {
+            display: none;
+        }
+        .simple-chart-axis-title {
+            display: none;
         }
     }
     </style>
@@ -332,16 +367,24 @@ def render_bar_chart(
     chart_data: pd.DataFrame,
     value_column: str,
     value_label_column: str,
+    axis_title: str,
 ) -> str:
     data = chart_data[chart_data[value_column].notna()].sort_values("sort_order")
     max_value = data[value_column].max()
     if pd.isna(max_value) or max_value <= 0:
         max_value = 1
 
+    if value_column == "median_masonry_percent":
+        chart_max = max(0.01, np.ceil(max_value * 100) / 100)
+        ticks = [f"{int(round(chart_max * tick * 100))}%" for tick in np.linspace(0, 1, 7)]
+    else:
+        chart_max = max_value
+        ticks = [f"{int(round(chart_max * tick)):,}" for tick in np.linspace(0, 1, 6)]
+
     rows = []
     for _, row in data.iterrows():
         value = float(row[value_column])
-        width = max(1.2, min((value / max_value) * 100, 100))
+        width = max(1.2, min((value / chart_max) * 100, 100))
         label = html.escape(str(row["chart_label"]))
         value_label = html.escape(str(row[value_label_column]))
         color = chart_color(str(row["chart_group"]))
@@ -360,7 +403,15 @@ def render_bar_chart(
             f'<div class="simple-chart-value">{value_label}</div>'
             f'</div>'
         )
-    return '<div class="simple-chart">' + "".join(rows) + "</div>"
+    axis = (
+        '<div class="simple-chart-axis">'
+        '<div></div>'
+        f'<div class="simple-chart-ticks">{"".join(f"<span>{tick}</span>" for tick in ticks)}</div>'
+        '<div></div>'
+        f'<div class="simple-chart-axis-title">{html.escape(axis_title)}</div>'
+        '</div>'
+    )
+    return '<div class="simple-chart">' + "".join(rows) + axis + "</div>"
 
 
 st.title("Masonry Value Estimator")
@@ -538,13 +589,23 @@ chart_data = make_comparison_data(
 
 st.write("**How the selected category compares with other categories**")
 st.markdown(
-    render_bar_chart(chart_data, "median_masonry_percent", "masonry_percent_label"),
+    render_bar_chart(
+        chart_data,
+        "median_masonry_percent",
+        "masonry_percent_label",
+        "Median masonry percentage",
+    ),
     unsafe_allow_html=True,
 )
 
 st.write("**Number of reported masonry records supporting each category**")
 st.markdown(
-    render_bar_chart(chart_data, "reported_project_records", "record_count_label"),
+    render_bar_chart(
+        chart_data,
+        "reported_project_records",
+        "record_count_label",
+        "Reported masonry records",
+    ),
     unsafe_allow_html=True,
 )
 
