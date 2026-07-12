@@ -15,8 +15,8 @@ DATA_PATHS = [
 ]
 DATA_PATH = next((path for path in DATA_PATHS if path.exists()), DATA_PATHS[0])
 DATASET_VIEWS = {
-    "Reported values only (Dataset.csv)": "reported_only",
-    "Reported + model-estimated values (masonry_values_filled.csv)": "reported_plus_estimated",
+    "Reported values only": "reported_only",
+    "Reported + model-estimated values": "reported_plus_estimated",
 }
 DATASET_OPTIONS = list(DATASET_VIEWS.keys())
 
@@ -66,6 +66,19 @@ st.markdown(
         font-size: 0.86rem;
         font-weight: 700;
         margin: 0.25rem 0 0.9rem 0;
+    }
+    .dataset-note {
+        border: 1px solid #bfdbfe;
+        border-left: 5px solid #2563eb;
+        border-radius: 8px;
+        background: #eff6ff;
+        color: #172033;
+        padding: 0.9rem 1rem;
+        margin: 0.2rem 0 1rem 0;
+        line-height: 1.55;
+    }
+    .dataset-note strong {
+        color: #1d4ed8;
     }
     .muted {
         color: #52616b;
@@ -383,6 +396,17 @@ dataset_label = st.radio(
     ),
 )
 dataset_view = DATASET_VIEWS[dataset_label]
+st.markdown(
+    """
+    <div class="dataset-note">
+    <strong>Both views are generated from the final dataset after cleaning and
+    machine-learning estimation.</strong><br>
+    This app uses the final dataset produced after the team's machine-learning
+    estimation process.
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 badge_text = (
     "Based on reported masonry values only"
     if dataset_view == "reported_only"

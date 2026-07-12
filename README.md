@@ -6,7 +6,7 @@ This folder is ready to upload to a public GitHub repository and deploy on Strea
 
 - `app.py` - Streamlit web app
 - `requirements.txt` - Python dependencies for Streamlit Cloud
-- `masonry_values_filled.csv` - final enriched dataset with reported + model-estimated masonry values
+- `masonry_values_filled.csv` - final enriched dataset with reported + model-estimated masonry values. The app uses this file for both dataset views.
 - `.streamlit/config.toml` - app theme settings
 
 ## Deploy
