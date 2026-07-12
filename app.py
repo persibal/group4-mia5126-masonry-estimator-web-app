@@ -6,6 +6,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -369,6 +370,102 @@ def chart_color(chart_group: str) -> str:
     return colors.get(chart_group, "#c7d2fe")
 
 
+CHART_COMPONENT_STYLE = """
+<style>
+body {
+    margin: 0;
+    background: transparent;
+    font-family: "Source Sans Pro", Arial, sans-serif;
+}
+.simple-chart {
+    background: transparent;
+    padding: 0.45rem 0 1.2rem 0;
+}
+.simple-chart-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr);
+    gap: 0.55rem;
+    align-items: center;
+    min-height: 25px;
+    margin: 0.08rem 0;
+}
+.simple-chart-label {
+    color: #718096;
+    font-size: 0.82rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-align: right;
+}
+.simple-chart-track {
+    position: relative;
+    height: 22px;
+    border-radius: 0;
+    background-image: repeating-linear-gradient(
+        to right,
+        #dbe3f1 0,
+        #dbe3f1 1px,
+        transparent 1px,
+        transparent 8.333%
+    );
+    overflow: visible;
+}
+.simple-chart-bar {
+    height: 18px;
+    border-radius: 0;
+    margin-top: 2px;
+}
+.simple-chart-value {
+    position: absolute;
+    top: 50%;
+    left: min(calc(var(--bar-width) + 5px), calc(100% - 72px));
+    transform: translateY(-50%);
+    color: #172033;
+    font-size: 0.79rem;
+    font-weight: 650;
+    text-align: left;
+    white-space: nowrap;
+}
+.simple-chart-axis {
+    display: grid;
+    grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr);
+    gap: 0.55rem;
+    margin-top: 0.5rem;
+    color: #718096;
+    font-size: 0.78rem;
+}
+.simple-chart-ticks {
+    display: flex;
+    justify-content: space-between;
+}
+.simple-chart-axis-title {
+    grid-column: 2 / 3;
+    text-align: center;
+    margin-top: 0.7rem;
+    color: #718096;
+    font-size: 0.86rem;
+}
+@media (max-width: 640px) {
+    .simple-chart-row {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+        margin-bottom: 0.85rem;
+    }
+    .simple-chart-label {
+        text-align: left;
+    }
+    .simple-chart-value {
+        left: auto;
+        right: 0.25rem;
+    }
+    .simple-chart-axis,
+    .simple-chart-axis-title {
+        display: none;
+    }
+}
+</style>
+"""
+
+
 def render_bar_chart(
     chart_data: pd.DataFrame,
     value_column: str,
@@ -416,7 +513,7 @@ def render_bar_chart(
         f'<div class="simple-chart-axis-title">{html.escape(axis_title)}</div>'
         '</div>'
     )
-    return '<div class="simple-chart">' + "".join(rows) + axis + "</div>"
+    return CHART_COMPONENT_STYLE + '<div class="simple-chart">' + "".join(rows) + axis + "</div>"
 
 
 st.title("Masonry Value Estimator")
@@ -593,25 +690,27 @@ chart_data = make_comparison_data(
 )
 
 st.write("**How the selected category compares with other categories**")
-st.markdown(
+components.html(
     render_bar_chart(
         chart_data,
         "median_masonry_percent",
         "masonry_percent_label",
         "Median masonry percentage",
     ),
-    unsafe_allow_html=True,
+    height=345,
+    scrolling=False,
 )
 
 st.write("**Number of reported masonry records supporting each category**")
-st.markdown(
+components.html(
     render_bar_chart(
         chart_data,
         "reported_project_records",
         "record_count_label",
         "Reported masonry records",
     ),
-    unsafe_allow_html=True,
+    height=345,
+    scrolling=False,
 )
 
 selected_rank = (
