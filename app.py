@@ -378,71 +378,44 @@ body {
     font-family: "Source Sans Pro", Arial, sans-serif;
 }
 .simple-chart {
-    background: transparent;
-    padding: 0.45rem 0 1.2rem 0;
+    border: 1px solid #d9e2ec;
+    border-radius: 8px;
+    background: #ffffff;
+    box-sizing: border-box;
+    padding: 1.05rem 0.9rem;
 }
 .simple-chart-row {
     display: grid;
-    grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr);
-    gap: 0.55rem;
+    grid-template-columns: minmax(240px, 42%) minmax(260px, 1fr) 74px;
+    gap: 0.85rem;
     align-items: center;
-    min-height: 25px;
-    margin: 0.08rem 0;
+    min-height: 40px;
+    margin: 0.18rem 0;
 }
 .simple-chart-label {
-    color: #718096;
-    font-size: 0.82rem;
+    color: #27415f;
+    font-size: 0.9rem;
     line-height: 1.25;
     overflow-wrap: anywhere;
-    text-align: right;
+    text-align: left;
 }
 .simple-chart-track {
     position: relative;
-    height: 22px;
-    border-radius: 0;
-    background-image: repeating-linear-gradient(
-        to right,
-        #dbe3f1 0,
-        #dbe3f1 1px,
-        transparent 1px,
-        transparent 8.333%
-    );
-    overflow: visible;
+    height: 20px;
+    border-radius: 6px;
+    background: #edf2ff;
+    overflow: hidden;
 }
 .simple-chart-bar {
-    height: 18px;
-    border-radius: 0;
-    margin-top: 2px;
+    height: 100%;
+    border-radius: 6px;
 }
 .simple-chart-value {
-    position: absolute;
-    top: 50%;
-    left: min(calc(var(--bar-width) + 5px), calc(100% - 72px));
-    transform: translateY(-50%);
     color: #172033;
-    font-size: 0.79rem;
-    font-weight: 650;
-    text-align: left;
+    font-size: 0.9rem;
+    font-weight: 750;
+    text-align: right;
     white-space: nowrap;
-}
-.simple-chart-axis {
-    display: grid;
-    grid-template-columns: minmax(150px, 18%) minmax(360px, 1fr);
-    gap: 0.55rem;
-    margin-top: 0.5rem;
-    color: #718096;
-    font-size: 0.78rem;
-}
-.simple-chart-ticks {
-    display: flex;
-    justify-content: space-between;
-}
-.simple-chart-axis-title {
-    grid-column: 2 / 3;
-    text-align: center;
-    margin-top: 0.7rem;
-    color: #718096;
-    font-size: 0.86rem;
 }
 @media (max-width: 640px) {
     .simple-chart-row {
@@ -454,12 +427,7 @@ body {
         text-align: left;
     }
     .simple-chart-value {
-        left: auto;
-        right: 0.25rem;
-    }
-    .simple-chart-axis,
-    .simple-chart-axis-title {
-        display: none;
+        text-align: left;
     }
 }
 </style>
@@ -470,7 +438,6 @@ def render_bar_chart(
     chart_data: pd.DataFrame,
     value_column: str,
     value_label_column: str,
-    axis_title: str,
 ) -> str:
     data = chart_data[chart_data[value_column].notna()].sort_values("sort_order")
     max_value = data[value_column].max()
@@ -479,10 +446,8 @@ def render_bar_chart(
 
     if value_column == "median_masonry_percent":
         chart_max = max(0.01, np.ceil(max_value * 100) / 100)
-        ticks = [f"{int(round(chart_max * tick * 100))}%" for tick in np.linspace(0, 1, 7)]
     else:
         chart_max = max_value
-        ticks = [f"{int(round(chart_max * tick)):,}" for tick in np.linspace(0, 1, 6)]
 
     rows = []
     for _, row in data.iterrows():
@@ -502,18 +467,11 @@ def render_bar_chart(
             f'<div class="simple-chart-label">{label}</div>'
             f'<div class="simple-chart-track" style="--bar-width: {width:.2f}%;">'
             f'<div class="simple-chart-bar" style="width: {width:.2f}%; background: {color};"></div>'
+            f'</div>'
             f'<div class="simple-chart-value">{value_label}</div>'
             f'</div>'
-            f'</div>'
         )
-    axis = (
-        '<div class="simple-chart-axis">'
-        '<div></div>'
-        f'<div class="simple-chart-ticks">{"".join(f"<span>{tick}</span>" for tick in ticks)}</div>'
-        f'<div class="simple-chart-axis-title">{html.escape(axis_title)}</div>'
-        '</div>'
-    )
-    return CHART_COMPONENT_STYLE + '<div class="simple-chart">' + "".join(rows) + axis + "</div>"
+    return CHART_COMPONENT_STYLE + '<div class="simple-chart">' + "".join(rows) + "</div>"
 
 
 st.title("Masonry Value Estimator")
@@ -695,9 +653,8 @@ components.html(
         chart_data,
         "median_masonry_percent",
         "masonry_percent_label",
-        "Median masonry percentage",
     ),
-    height=345,
+    height=455,
     scrolling=False,
 )
 
@@ -707,9 +664,8 @@ components.html(
         chart_data,
         "reported_project_records",
         "record_count_label",
-        "Reported masonry records",
     ),
-    height=345,
+    height=455,
     scrolling=False,
 )
 
