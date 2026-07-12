@@ -378,23 +378,23 @@ body {
     font-family: "Source Sans Pro", Arial, sans-serif;
 }
 .simple-chart {
-    border: 1px solid #d9e2ec;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
     background: #ffffff;
     box-sizing: border-box;
-    padding: 1.05rem 0.9rem;
+    padding: 0.85rem;
 }
 .simple-chart-row {
     display: grid;
-    grid-template-columns: minmax(240px, 42%) minmax(260px, 1fr) 74px;
-    gap: 0.85rem;
+    grid-template-columns: minmax(230px, 42%) 1fr 74px;
+    gap: 0.75rem;
     align-items: center;
-    min-height: 40px;
-    margin: 0.18rem 0;
+    min-height: 34px;
+    margin: 0.35rem 0;
 }
 .simple-chart-label {
-    color: #27415f;
-    font-size: 0.9rem;
+    color: #475569;
+    font-size: 0.88rem;
     line-height: 1.25;
     overflow-wrap: anywhere;
     text-align: left;
@@ -402,18 +402,18 @@ body {
 .simple-chart-track {
     position: relative;
     height: 20px;
-    border-radius: 6px;
-    background: #edf2ff;
+    border-radius: 5px;
+    background: #eef2ff;
     overflow: hidden;
 }
 .simple-chart-bar {
     height: 100%;
-    border-radius: 6px;
+    border-radius: 5px;
 }
 .simple-chart-value {
     color: #172033;
-    font-size: 0.9rem;
-    font-weight: 750;
+    font-size: 0.88rem;
+    font-weight: 650;
     text-align: right;
     white-space: nowrap;
 }
@@ -509,7 +509,7 @@ st.markdown(
     <strong>Both views are generated from the final dataset after cleaning and
     machine-learning estimation.</strong><br>
     This app uses the final dataset produced after the team's machine-learning
-    estimation process.
+    estimation process: <strong>masonry_values_filled.csv</strong>.
     </div>
     """,
     unsafe_allow_html=True,
