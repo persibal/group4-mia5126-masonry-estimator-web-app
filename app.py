@@ -304,9 +304,19 @@ def reset_inputs() -> None:
     st.session_state.show_result = False
 
 
+def hide_result_until_recalculated() -> None:
+    st.session_state.show_result = False
+
+
 def format_project_value_input() -> None:
     value = parse_project_value(st.session_state.get("project_value_text", ""))
     st.session_state.project_value_text = project_value_label(value)
+    hide_result_until_recalculated()
+
+
+def show_estimate() -> None:
+    format_project_value_input()
+    st.session_state.show_result = True
 
 
 def sync_graph_dataset_selector() -> None:
@@ -578,7 +588,12 @@ st.subheader("1. Enter Project Information")
 
 left, right = st.columns([1.25, 1])
 with left:
-    st.selectbox("Subcategory", categories, key="subcategory")
+    st.selectbox(
+        "Subcategory",
+        categories,
+        key="subcategory",
+        on_change=hide_result_until_recalculated,
+    )
 with right:
     st.text_input(
         "Project Value",
@@ -590,8 +605,12 @@ with right:
 
 button_col, reset_col = st.columns([2, 1])
 with button_col:
-    if st.button("Estimate Masonry Value", type="primary", use_container_width=True):
-        st.session_state.show_result = True
+    st.button(
+        "Estimate Masonry Value",
+        type="primary",
+        use_container_width=True,
+        on_click=show_estimate,
+    )
 with reset_col:
     st.button("Reset", use_container_width=True, on_click=reset_inputs)
 
