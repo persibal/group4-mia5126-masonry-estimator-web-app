@@ -201,6 +201,23 @@ def money(value: float) -> str:
     return f"${value:,.2f}"
 
 
+def project_value_label(value: float) -> str:
+    return f"{int(value):,}" if float(value).is_integer() else f"{value:,.2f}"
+
+
+def parse_project_value(raw_value: str) -> float:
+    cleaned = re.sub(r"[^0-9.]", "", raw_value or "")
+    if cleaned.count(".") > 1:
+        first, *rest = cleaned.split(".")
+        cleaned = first + "." + "".join(rest)
+    if not cleaned:
+        return 0.0
+    try:
+        return float(cleaned)
+    except ValueError:
+        return 0.0
+
+
 def evidence_label(reported_records: int) -> tuple[str, str]:
     if reported_records >= 10:
         return "Moderate evidence", "This category has 10 or more reported masonry records."
@@ -283,8 +300,13 @@ def load_project_data(dataset_view: str) -> tuple[pd.DataFrame, pd.DataFrame, fl
 
 def reset_inputs() -> None:
     st.session_state.subcategory = "Apartments"
-    st.session_state.project_value = 1_000_000
+    st.session_state.project_value_text = "1,000,000"
     st.session_state.show_result = False
+
+
+def format_project_value_input() -> None:
+    value = parse_project_value(st.session_state.get("project_value_text", ""))
+    st.session_state.project_value_text = project_value_label(value)
 
 
 def sync_graph_dataset_selector() -> None:
@@ -549,8 +571,8 @@ if "subcategory" not in st.session_state:
     st.session_state.subcategory = default_category
 elif st.session_state.subcategory not in categories:
     st.session_state.subcategory = default_category
-if "project_value" not in st.session_state:
-    st.session_state.project_value = 1_000_000
+if "project_value_text" not in st.session_state:
+    st.session_state.project_value_text = "1,000,000"
 
 st.subheader("1. Enter Project Information")
 
@@ -558,12 +580,12 @@ left, right = st.columns([1.25, 1])
 with left:
     st.selectbox("Subcategory", categories, key="subcategory")
 with right:
-    st.number_input(
+    st.text_input(
         "Project Value",
-        min_value=0,
-        step=50_000,
-        format="%d",
-        key="project_value",
+        key="project_value_text",
+        placeholder="1,000,000",
+        help="Enter the project value using commas if helpful, for example 1,000,000.",
+        on_change=format_project_value_input,
     )
 
 button_col, reset_col = st.columns([2, 1])
@@ -574,7 +596,7 @@ with reset_col:
     st.button("Reset", use_container_width=True, on_click=reset_inputs)
 
 selected = st.session_state.subcategory
-project_value = float(st.session_state.project_value)
+project_value = parse_project_value(st.session_state.project_value_text)
 selected_row = summary[summary["specific_subcategory"] == selected]
 
 if selected_row.empty:
