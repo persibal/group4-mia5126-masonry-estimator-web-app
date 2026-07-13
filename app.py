@@ -304,14 +304,9 @@ def reset_inputs() -> None:
     st.session_state.show_result = False
 
 
-def hide_result_until_recalculated() -> None:
-    st.session_state.show_result = False
-
-
 def format_project_value_input() -> None:
     value = parse_project_value(st.session_state.get("project_value_text", ""))
     st.session_state.project_value_text = project_value_label(value)
-    hide_result_until_recalculated()
 
 
 def show_estimate() -> None:
@@ -588,12 +583,7 @@ st.subheader("1. Enter Project Information")
 
 left, right = st.columns([1.25, 1])
 with left:
-    st.selectbox(
-        "Subcategory",
-        categories,
-        key="subcategory",
-        on_change=hide_result_until_recalculated,
-    )
+    st.selectbox("Subcategory", categories, key="subcategory")
 with right:
     st.text_input(
         "Project Value",
